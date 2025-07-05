@@ -22,7 +22,7 @@ def parse_args():
                       help='最小总市值（含），单位：元')
     parser.add_argument('--max-mktcap', type=float, default=float('inf'), 
                       help='最大总市值（含），单位：元，默认无限制')
-    parser.add_argument('--start', default='20240101', 
+    parser.add_argument('--start', default='20200101', 
                       help='起始日期 YYYYMMDD 或 today')
     parser.add_argument('--end', default='today', 
                       help='结束日期 YYYYMMDD 或 today')
