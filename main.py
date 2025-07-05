@@ -18,7 +18,7 @@ def parse_args():
                       help='K线频率编码，参见说明')
     parser.add_argument('--exclude-gem', action='store_true', 
                       help='True则排除创业板/科创板/北交所')
-    parser.add_argument('--min-mktcap', type=float, default=5e9, 
+    parser.add_argument('--min-mktcap', type=float, default=2e9 , 
                       help='最小总市值（含），单位：元')
     parser.add_argument('--max-mktcap', type=float, default=float('inf'), 
                       help='最大总市值（含），单位：元，默认无限制')
