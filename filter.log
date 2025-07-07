@@ -1,1 +1,17 @@
 2025-07-07 22:39:41,893 [INFO] filter_stocks.py:135 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:11:10,067 [INFO] filter_stocks.py:137 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:14:53,040 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:18:31,093 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:27:24,665 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:31:59,092 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:32:56,499 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:36:25,964 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-07 23:40:43,591 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250707.csv
+2025-07-08 00:06:36,485 [INFO] filter_stocks.py:144 数据已保存至 stock_data/top10_stockholders_20250708.csv
+2025-07-08 00:11:17,596 [INFO] filter_stocks.py:145 数据已保存至 stock_data/top10_stockholders_20250708.csv
+2025-07-08 00:28:39,038 [INFO] filter_stocks.py:230 数据已保存至 stock_data/top10_stockholders_20250708.csv
+2025-07-08 00:36:49,473 [INFO] filter_stocks.py:239 数据已保存至 stock_data/top10_stockholders_20250708.csv
+2025-07-08 00:40:00,010 [WARNING] filter_stocks.py:169 查询股票 000972.SZ 的十大流通股东失败: 抱歉，您每分钟最多访问该接口200次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
+2025-07-08 00:40:10,132 [WARNING] filter_stocks.py:169 查询股票 000973.SZ 的十大流通股东失败: 抱歉，您每分钟最多访问该接口200次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
+2025-07-08 00:41:05,157 [WARNING] filter_stocks.py:169 查询股票 002086.SZ 的十大流通股东失败: 抱歉，您每分钟最多访问该接口200次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。
+2025-07-08 00:41:15,277 [WARNING] filter_stocks.py:169 查询股票 002088.SZ 的十大流通股东失败: 抱歉，您每分钟最多访问该接口200次，权限的具体详情访问：https://tushare.pro/document/1?doc_id=108。

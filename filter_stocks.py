@@ -40,23 +40,35 @@ def filter_top10_floatholders(
     ann_date: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    holder_name: Optional[str] = None,
-    ts_token: Optional[str] = None
+    holder_name: Optional[str] = None
 ) -> pd.DataFrame:
     """
-    筛选包含指定前十大流通股东的股票代码
+    筛选包含特定股东的股票
     
     Args:
-        codes: 股票代码列表
-        holder_name: 股东名称
+        ts_code: TS股票代码
+        period: 报告期(YYYYMMDD格式)
+        ann_date: 公告日期
         start_date: 开始日期(YYYYMMDD)
         end_date: 结束日期(YYYYMMDD)
-        ts_token: Tushare token(可选)
+        holder_name: 股东名称
     
     Returns:
-        包含指定股东的股票代码列表
+        筛选后的股东数据
     """
+    ts.set_token(ts_token)
+    pro = ts.pro_api()
+    
+    df = pro.top10_floatholders(
+        ts_code=ts_code,
+        period=period,
+        ann_date=ann_date,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
     if ts_token:
+        print("ts_token:", ts_token)
         ts.set_token(ts_token)
     pro = ts.pro_api()
     
@@ -85,36 +97,124 @@ def filter_top10_floatholders(
     
     return df
 
-# --------------------------- 主函数 --------------------------- #
+
+def get_all_stock_basic(ts_token) -> pd.DataFrame:
+    """
+    获取所有上市股票的基础信息
+    
+    Args:
+        ts_token: Tushare token(可选)
+    
+    Returns:
+        包含股票基础信息的DataFrame
+    """
+    if ts_token:
+        ts.set_token(ts_token)
+    pro = ts.pro_api()
+    
+    # 获取所有上市股票的基础信息
+    df = pro.stock_basic(
+        exchange='', 
+        list_status='L', 
+        fields='ts_code,symbol,name,list_status,is_hs'
+    )
+    
+    print(f"共获取到 {df['ts_code'].nunique()} 只上市股票")
+    return df
+
+
+def batch_query_top10_floatholders(
+    start_date: str,
+    end_date: str
+) -> pd.DataFrame:
+    """
+    批量查询所有上市股票的十大流通股东数据
+    
+    Args:
+        start_date: 开始日期(YYYYMMDD)
+        end_date: 结束日期(YYYYMMDD)
+    
+    Returns:
+        合并后的十大流通股东数据
+    """
+    ts.set_token(ts_token)
+    pro = ts.pro_api()
+    
+    # 获取所有股票基础信息
+    stock_df = get_all_stock_basic(ts_token)
+    
+    all_data = pd.DataFrame()
+    count = 0
+    
+    for _, row in stock_df.iterrows():
+        ts_code = row['ts_code']
+        
+        try:
+            # 查询十大流通股东数据
+            df = pro.top10_floatholders(
+                ts_code=ts_code,
+                start_date=start_date,
+                end_date=end_date
+            )
+            
+            if df is not None and not df.empty:
+                all_data = pd.concat([all_data, df])
+                
+            count += 1
+            if count % 200 == 0:
+                print(f"已查询 {count} 只股票，暂停20秒...")
+                time.sleep(20)
+                
+        except Exception as e:
+            logger.warning(f"查询股票 {ts_code} 的十大流通股东失败: {e}")
+            time.sleep(10)
+    
+    return all_data
+
 
 def main():
     parser = argparse.ArgumentParser(description="筛选包含特定股东的股票")
+    parser.add_argument("--mode", type=str, choices=['single', 'batch'], default='batch', 
+                      help="查询模式: single-单只股票, batch-批量查询")
     parser.add_argument("--ts_code", type=str, help="TS股票代码")
     parser.add_argument("--period", type=str, help="报告期(YYYYMMDD格式)")
     parser.add_argument("--ann_date", type=str, help="公告日期")
-    parser.add_argument("--start_date", type=str, help="报告期开始日期")
-    parser.add_argument("--end_date", type=str, help="报告期结束日期")
     parser.add_argument("--holder", type=str, help="股东名称")
-    parser.add_argument("--token", type=str, help="Tushare token")
     
     args = parser.parse_args()
+
+    # 全局变量
+    global ts_token
+    ts_token = "6b4902cede56f56fb0ca8cb1e1c75100deabab77e695b8813a741c9c"
     
-    df = filter_top10_floatholders(
-        ts_code=args.ts_code,
-        period=args.period,
-        ann_date=args.ann_date,
-        start_date=args.start_date,
-        end_date=args.end_date,
-        holder_name=args.holder,
-        ts_token=args.token
-    )
+    # 获取用户输入的日期
+    print("请输入查询日期范围(格式: YYYYMMDD YYYYMMDD):")
+    start_date, end_date = input().strip().split()
+    
+    if args.mode == 'single':
+        df = filter_top10_floatholders(
+            ts_code=args.ts_code,
+            period=args.period,
+            ann_date=args.ann_date,
+            start_date=start_date,
+            end_date=end_date,
+            holder_name=args.holder
+        )
+    else:
+        df = batch_query_top10_floatholders(
+            start_date=start_date,
+            end_date=end_date
+        )
     
     if df.empty:
         print("未找到匹配的股东数据")
     else:
         print(df.to_string(index=False))
         
-        # 保存数据到CSV文件
+        # 统计去重后的ts_code数量
+        unique_codes = df['ts_code'].nunique()
+        print(f"\n去重后共有 {unique_codes} 个股票代码")
+        
         from pathlib import Path
         import os
         
@@ -124,13 +224,17 @@ def main():
         today = dt.datetime.now().strftime("%Y%m%d")
         filename = data_dir / f"top10_stockholders_{today}.csv"
         
+        # 添加统计信息到DataFrame
+        stats_row = pd.DataFrame([{"统计信息": f"去重后共有 {unique_codes} 个股票代码"}])
+        
         # 如果文件已存在则追加数据
         if os.path.exists(filename):
             existing_df = pd.read_csv(filename)
-            combined_df = pd.concat([existing_df, df]).drop_duplicates()
+            combined_df = pd.concat([stats_row, existing_df, df]).drop_duplicates()
             combined_df.to_csv(filename, index=False, encoding="utf_8_sig")
         else:
-            df.to_csv(filename, index=False, encoding="utf_8_sig")
+            combined_df = pd.concat([stats_row, df]).drop_duplicates()
+            combined_df.to_csv(filename, index=False, encoding="utf_8_sig")
         
         logger.info(f"数据已保存至 {filename}")
 
