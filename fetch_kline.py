@@ -129,7 +129,8 @@ def _get_kline_tushare(code: str, start: str, end: str, adjust: str) -> pd.DataF
             break
         except Exception as e:
             logger.warning("Tushare 拉取 %s 失败(%d/3): %s", code, attempt, e)
-            time.sleep(random.uniform(1, 2) * attempt)
+            # time.sleep(20)
+            # time.sleep(random.uniform(5, 50))
     else:
         return pd.DataFrame()
 
