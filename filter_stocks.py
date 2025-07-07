@@ -113,6 +113,26 @@ def main():
         print("未找到匹配的股东数据")
     else:
         print(df.to_string(index=False))
+        
+        # 保存数据到CSV文件
+        from pathlib import Path
+        import os
+        
+        data_dir = Path("./stock_data")
+        data_dir.mkdir(exist_ok=True)
+        
+        today = dt.datetime.now().strftime("%Y%m%d")
+        filename = data_dir / f"top10_stockholders_{today}.csv"
+        
+        # 如果文件已存在则追加数据
+        if os.path.exists(filename):
+            existing_df = pd.read_csv(filename)
+            combined_df = pd.concat([existing_df, df]).drop_duplicates()
+            combined_df.to_csv(filename, index=False, encoding="utf_8_sig")
+        else:
+            df.to_csv(filename, index=False, encoding="utf_8_sig")
+        
+        logger.info(f"数据已保存至 {filename}")
 
 if __name__ == "__main__":
     main()
