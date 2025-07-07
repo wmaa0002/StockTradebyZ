@@ -40,7 +40,8 @@ def filter_top10_floatholders(
     ann_date: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    holder_name: Optional[str] = None
+    holder_name: Optional[str] = None,
+    pro: Optional[ts.pro_api] = None
 ) -> pd.DataFrame:
     """
     筛选包含特定股东的股票
@@ -98,7 +99,7 @@ def filter_top10_floatholders(
     return df
 
 
-def get_all_stock_basic(ts_token) -> pd.DataFrame:
+def get_all_stock_basic(pro) -> pd.DataFrame:
     """
     获取所有上市股票的基础信息
     
@@ -108,9 +109,9 @@ def get_all_stock_basic(ts_token) -> pd.DataFrame:
     Returns:
         包含股票基础信息的DataFrame
     """
-    if ts_token:
-        ts.set_token(ts_token)
-    pro = ts.pro_api()
+    # if ts_token:
+    #     ts.set_token(ts_token)
+    # pro = ts.pro_api()
     
     # 获取所有上市股票的基础信息
     df = pro.stock_basic(
@@ -125,7 +126,8 @@ def get_all_stock_basic(ts_token) -> pd.DataFrame:
 
 def batch_query_top10_floatholders(
     start_date: str,
-    end_date: str
+    end_date: str,
+    pro: ts.pro_api
 ) -> pd.DataFrame:
     """
     批量查询所有上市股票的十大流通股东数据
@@ -133,16 +135,13 @@ def batch_query_top10_floatholders(
     Args:
         start_date: 开始日期(YYYYMMDD)
         end_date: 结束日期(YYYYMMDD)
+        pro: Tushare pro_api实例
     
     Returns:
         合并后的十大流通股东数据
     """
-    global ts_token
-    ts.set_token(ts_token)
-    pro = ts.pro_api()
-    
-    # 获取所有股票基础信息
-    stock_df = get_all_stock_basic(ts_token)
+    # 使用全局pro变量
+    stock_df = get_all_stock_basic(pro)
     
     all_data = pd.DataFrame()
     count = 0
@@ -152,7 +151,7 @@ def batch_query_top10_floatholders(
         
         for attempt in range(1, 4):
             try:
-                # 查询十大流通股东数据
+                # 使用全局pro变量
                 df = pro.top10_floatholders(
                     ts_code=ts_code,
                     start_date=start_date,
@@ -192,6 +191,10 @@ def main():
     # 全局变量
     global ts_token
     ts_token = "6b4902cede56f56fb0ca8cb1e1c75100deabab77e695b8813a741c9c"
+
+    # 初始化Tushare连接
+    ts.set_token(ts_token)
+    pro = ts.pro_api()
     
     # 获取用户输入的日期
     print("请输入查询日期范围(格式: YYYYMMDD YYYYMMDD):")
@@ -204,12 +207,14 @@ def main():
             ann_date=args.ann_date,
             start_date=start_date,
             end_date=end_date,
-            holder_name=args.holder
+            holder_name=args.holder,
+            pro=pro
         )
     else:
         df = batch_query_top10_floatholders(
             start_date=start_date,
-            end_date=end_date
+            end_date=end_date,
+            pro=pro
         )
     
     if df.empty:
