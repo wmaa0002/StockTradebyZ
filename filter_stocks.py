@@ -137,6 +137,7 @@ def batch_query_top10_floatholders(
     Returns:
         合并后的十大流通股东数据
     """
+    global ts_token
     ts.set_token(ts_token)
     pro = ts.pro_api()
     
@@ -149,25 +150,30 @@ def batch_query_top10_floatholders(
     for _, row in stock_df.iterrows():
         ts_code = row['ts_code']
         
-        try:
-            # 查询十大流通股东数据
-            df = pro.top10_floatholders(
-                ts_code=ts_code,
-                start_date=start_date,
-                end_date=end_date
-            )
-            
-            if df is not None and not df.empty:
-                all_data = pd.concat([all_data, df])
+        for attempt in range(1, 4):
+            try:
+                # 查询十大流通股东数据
+                df = pro.top10_floatholders(
+                    ts_code=ts_code,
+                    start_date=start_date,
+                    end_date=end_date
+                )
                 
-            count += 1
-            if count % 200 == 0:
-                print(f"已查询 {count} 只股票，暂停20秒...")
-                time.sleep(20)
+                if df is not None and not df.empty:
+                    all_data = pd.concat([all_data, df])
                 
-        except Exception as e:
-            logger.warning(f"查询股票 {ts_code} 的十大流通股东失败: {e}")
-            time.sleep(10)
+                count += 1
+                if count % 200 == 0:
+                    print(f"已查询 {count} 只股票，暂停20秒...")
+                    time.sleep(20)
+                break
+                
+            except Exception as e:
+                logger.warning(f"查询股票 {ts_code} 的十大流通股东失败(尝试 {attempt}/3): {e}")
+                if attempt == 3:
+                    logger.error(f"股票 {ts_code} 查询失败，跳过该股票")
+                else:
+                    time.sleep(10 * attempt)
     
     return all_data
 
